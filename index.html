@@ -57,16 +57,90 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Layer-Conditions</h1>
-        <p>This will shortly explain what LCs are.</p>
+        <p>This will shortly explain what layer-conditions are.</p>
       </div>
-      <p>more details</p>
-
+      <p>Layer-conditions (LCs)[CITATION NEEDED] are a simple approximation of the cache requirement of a stencil code on architectures with a pure least-recently-used (LRU) caching policy. The model is assuming perfect LRU, which is not usually found in real-world architectures[CITATION NEEDED], but has proven to give a good estimation for pseudo LRU [CITATION NEEDED].</p>
       <div class="page-header">
         <h1>Example</h1>
-        Explaining LCs in detail with a 2D-5Point stencil kernel
+        Explaining layer-conditions in detail with a 2D 5 Point stencil kernel
       </div>
-      <p>TODO</p>
-      
+      <div class="row">
+          <div class="col-md-8">
+              <p>A simple example to explain stencil codes is the 2D 5 Point stencil kernel, which is a common stencil that results from a finite difference discretization. The code will look something like the one on the right.</p>
+              <p>As you can see, it iterates over the inner elements of an MxN array, reads four elements from <code>a</code> and writes back one element into array <code>b</code>. While doing so it does some additions and a multiplication with a scalar, which we will ignore since arithmetical operations do not effect the cache behaviour. Important are the array accesses <code>b[j][i]</code>, <code>a[j+1][i]</code>, <code>a[j][i-1]</code>, <code>a[j][i+1]</code>, <code>a[j+1][i]</code> and the array definition <code>a[M][N]</code> and <code>b[M][N]</code>, the combination of these dictate the cache requirement of this code.</p>
+              <p><mark>It is important to note</mark>, that this analysis requires the the order of iteration and the order of indices found in the array access is the same. E.g., access <code>a[i][j]</code> would not be suitable.</p>
+          </div><div class="col-md-4">
+              <pre><code>double a[M][N];
+double b[M][N];
+double s = 1.0/4.0;
+
+for(int j=1; j&lt;M-1; j++) {
+    for(int i=1; i&lt;N-1; i++) {
+        b[j][i] = s * (
+                    a[j+1][i] 
+            + a[j][i-1] + a[j][i+1]
+                  + a[j+1][i]);
+    }
+}</code></pre>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <p>If we plot these accesses onto a small array (here 5x7), it looks as seen on the right. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed leas-recently-used replacement policy (LRU).</p>
+                <p>If a new value needs to be stored in cache, an "old" value needs to be replaced or evicted from cache. In case of LRU, the value which has longest not been touch will be replaced.</p>
+            </div><div class="col-md-4">
+                <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250px">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h2>1D Layer-Condition</h2>
+                <p>We will build the layer-condition model starting from the first dimension, which may seem tedious or useless&ndash;since a 1D layer-condition is almost always fulfilled and considered trivial&ndash;but it allows for a better understanding and will enable the reader to easily project this model to any higher dimension.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <p>First we slice our array access into one dimensional continuos segments. This will yield three slices for the array <code>a</code>, as seen on the right. Since <code>b</code> has only one access, it will always yield only one slice, no matter the dimension. We need to keep the total number of slices in mind for later computation:</p>
+                \[\mathrm{n_{slices}=3+1=4}\]
+                <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. Which are exactly two offset by two elements. We need to keep a list of offsets, to which we add this:</p>
+                \[\mathrm{L_{rel.offsets}=\{2\}}\]
+            </div><div class="col-md-4">
+                <img class="img-thumbnail" src="img/stencil-1dsliced.png" alt="2D-5pt Stencil" width="250px">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <p>Now we have everything we need to make a cache requirement estimation: the number of slices, the relative offsets and the size of an element. The later we know from the array definition, which was double and means \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\).</p>
+                <p>The total cache requirement is the sum over all the relative offsets and the maximum over all relative offsets times the number of slices: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
+                <p>In our case this will turn out to be \(\mathrm{C_{req.}}=(2+2*4)*8=80\,\mathrm{Byte}\), which is ridiculously small and will fit in any cache. As long as \(\mathrm{C_{req.}}\) is smaller then half the cache, we will reuse at least one (number of entries in \(\mathrm{L_{rel.offsets}}\)) element.</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <h2>2D Layer-Condition</h2>
+                <p>We will now evolve the previous model to two dimensions, which will give us a more useful estimation. This will be the highest dimension analyzable, since the arrays are two dimensional.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8">
+                <p>Again, we slice our array access into two dimensional continuos segments. This is easy, since the array only has two dimensions, therefore we have only one slice per array. One for <code>a</code> and another for <code>b</code>:</p>
+                \[\mathrm{n_{slices}=1+1=2}\]
+                <p>To calculate the relative offsets between accesses within each slice are a little more laborious. We have four accesses in <code>a</code>, thus three relative offsets to add to our list: \(N-1\) elements between <code>a[j-1][i]</code> and <code>a[j][i-1]</code>, \(2\) elements between <code>a[j][i-1]</code> and <code>a[j][i+1]</code> (as in the 1D case), and again \(N-1\) elements <code>a[j+1][i]</code> and <code>a[j][i+1]</code>.</p>
+                \[\mathrm{L_{rel.offsets}=\{N-1, 2, N-1\}}\]
+            </div><div class="col-md-4">
+                <img class="img-thumbnail" src="img/stencil-2dsliced.png" alt="2D-5pt Stencil" width="250px">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <p>Putting it all together follows the same process as before. We take the number of slices \(\mathrm{n_{slices}}\), the relative offsets \(\mathrm{L_{rel.offsets}}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
+                <p>More interesting is what results from it: \(\mathrm{C_{req.}(N)}=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\).</p>
+                <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to the cache-size. To fit into a 32 KB cache we take: \[N=\frac{32*1024+16}{32}\approx1024\] Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
+            </div>
+        </div>
+  </div>
+  <div class="container theme-showcase" role="main">
       <section id="calculator">
       <div class="page-header">
         <h1>Interactive Calculator</h1>
@@ -81,6 +155,8 @@
                       <option>1</option>
                       <option>2</option>
                       <option>3</option>
+                      <option>4</option>
+                      <option>5</option>
                   </select>
               </div>
               <p class="help-block">
@@ -100,7 +176,7 @@
                     <span id="array_size_template" hidden>
                         [<input type="text" class="form-control small-field" id="ar_size" value="1024">]
                     </span>
-                    <span id="array_size">
+                    <span id="array_size" class="bracket-notation">
                     </span>
                 </div>
             <p class="help-block">
@@ -112,17 +188,16 @@
             <label for="access[]" class="col-sm-2 control-label">Accesses</label>
             <div class="col-sm-10">
                 <span id="array_access_offset_template" hidden>
-                    [i<input type="text" class="form-control smaller-field" id="offset">]
+                    [<input type="text" class="form-control smaller-field" id="offset">]
                 </span>
                 <div id="array_access_template" class="form-inline" hidden>
                     <input type="text" class="form-control small-field" id="access"/>
                     <span class="array_access_template"></span>
                 </div>
-                <div id="access_rows"></div>
+                <div id="access_rows" class="bracket-notation"></div>
                 <a class="btn btn-default" id="add_access" role="button">Add access</a>
                 <p class="help-block">
-                    How many dimensions does your code have? The number of nested for-loops AND array
-                    dimensions (e.g. a[][] is of dimension 2).
+                    Add accesses found in the inner-most loop without the loop counters. E.g. a[+1][+1] or VEC[0][-1]. On a write-allocate architecture, also add write accesses here.
                 </p>
             </div>
         </div>
@@ -132,27 +207,50 @@
                 <div class="form-group form-inline">
                     <label for="l1_size">L1</label>
                     <div class="input-group col-xs-2">
-                        <input type="number" class="form-control text-right cache-field" id="l1_size" value="32">
+                        <input type="number" class="form-control text-right cache-field" 
+                            id="l1_size" value="32">
                         <div class="input-group-addon">KB</div>
                     </div>
                 </div>
                 <div class="form-group form-inline">
                     <label for="l3_size">L2</label>
                     <div class="input-group col-xs-2">
-                        <input type="number" class="form-control text-right cache-field" id="l2_size" value="256">
+                        <input type="number" class="form-control text-right cache-field" 
+                            id="l2_size" value="256">
                         <div class="input-group-addon">KB</div>
                     </div>
                 </div>
                 <div class="form-group form-inline">
                     <label for="l3_size">L3</label>
                     <div class="input-group col-xs-2">
-                        <input type="number" class="form-control text-right cache-field" id="l3_size" value="20480">
+                        <input type="number" class="form-control text-right cache-field" 
+                            id="l3_size" value="20480">
                         <div class="input-group-addon">KB</div>
                     </div>
                 </div>
-            <p class="help-block">
-                Sizes of data caches (all are assumed inclusive with least-recently-used caching).
-            </p>
+                <p class="help-block">
+                    Sizes of data caches (all are assumed inclusive with least-recently-used
+                    caching).
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Used Cores</label>
+            <div class="col-sm-10">
+                <input type="number" id="cores" class="form-control smaller-field" value="1">
+                <p class="help-block">
+                    Number of cores used by this code. This will lead to a size reduction of the
+                    shared L3 cache.
+                </p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Safety margin</label>
+            <div class="col-sm-10">
+                <input type="number" id="safety-margin" class="form-control smaller-field" value="2">
+                <p class="help-block">
+                    The cache size will be reduced by this factor to predict optimal blocking.
+                </p>
             </div>
         </div>
         <div class="form-group">
@@ -169,6 +267,9 @@
       </div>
       <table id="results-table"></table>
       </section>
+      
+  </div>
+  <div class="container theme-showcase" role="main">
       
       <section id="contact">
       <div class="page-header">
@@ -190,6 +291,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/locale/bootstrap-table-en-US.min.js"></script>
+    
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script src="js/layercondition.js"></script>
   </body>
 </html>

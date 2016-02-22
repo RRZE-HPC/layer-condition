@@ -2,7 +2,6 @@
 // TODO report more about orign of data (e.g., which two accesses lead to the reported reuse distance)
 // TODO check window scaling behaviour of form fields and result table
 // TODO use kilo and mega bytes when reporting bytes
-// TODO make index ordering clear in form
 // TODO report which access were hits and misses in report, maybe with coloring
 
 values = obj => Object.keys(obj).map(key => obj[key]);
@@ -59,8 +58,8 @@ var gather_inputs = function() {
         cache_sizes: {
             L1: parseInt($('#l1_size').val())*1024,
             L2: parseInt($('#l2_size').val())*1024,
-            L3: parseInt($('#l3_size').val())*1024},
-        safety_margin: 0.5};
+            L3: Math.floor(parseInt($('#l3_size').val())*1024/parseInt($('#cores').val()))},
+        safety_margin: parseInt($("#safety-margin").val())};
 }
 
 var analyze_input = function(input) {
@@ -187,23 +186,23 @@ var analyze_input = function(input) {
         }
         
         // Blocking suggestions:
-        // (cache_requirement - cache_size * safety_margin) / bytes_per_element / blockable_offsets
+        // (cache_requirement - cache_size / safety_margin) / bytes_per_element / blockable_offsets
         var inner_array_size = input['arrays']['dimension'].slice(-1)[0];
-        analysis['optimal_inner_blocking'] = {};
+        analysis['optimal_blocking'] = {};
         for(var cache_level in input['cache_sizes']) {
-            analysis['optimal_inner_blocking'][cache_level] = inner_array_size - 
-                    (cache_requirement - input['cache_sizes'][cache_level]*input['safety_margin']) /
+            analysis['optimal_blocking'][cache_level] = inner_array_size - 
+                    (cache_requirement - input['cache_sizes'][cache_level]/input['safety_margin']) /
                     (analysis['blockable_offsets'] * input['arrays']['bytes_per_element']) /
                     (dim_sizes[dimension-1]/inner_array_size);
             
-            if(analysis['optimal_inner_blocking'][cache_level] > 1.0 &&
+            if(analysis['optimal_blocking'][cache_level] > 1.0 &&
                max_reuse > (dim_sizes[dimension-1]/inner_array_size)) {
                 // Floor blocking, because half elements do not make sense
-                analysis['optimal_inner_blocking'][cache_level] = Math.floor(
-                    analysis['optimal_inner_blocking'][cache_level])
+                analysis['optimal_blocking'][cache_level] = Math.floor(
+                    analysis['optimal_blocking'][cache_level])
             } else {
                 // Every blocking with 1 or less means blocking won't help
-                analysis['optimal_inner_blocking'][cache_level] = null;
+                analysis['optimal_blocking'][cache_level] = null;
             }
         }
         
@@ -251,10 +250,10 @@ var display_results = function(input, results) {
             }))
         );
         data.push(
-            $.extend({info: "optimal inner-blocking in "+cache_level},
+            $.extend({info: "optimal blocking for "+cache_level},
                       ...Object.keys(results).map(function(k) {
                 var map = {};
-                var blocking = results[k]['optimal_inner_blocking'][cache_level];
+                var blocking = results[k]['optimal_blocking'][cache_level];
                 if(isFinite(blocking)) {
                     map[k] = blocking;
                 } else {
@@ -272,7 +271,7 @@ var display_results = function(input, results) {
     var layerConditionCellStyle = function(value, row, index) {
         if(index >= stat_rows && (
                 value == "n/a" || value == null || value.toString().endsWith("%"))) {
-            if(parseInt(value) >= 100/input['safety_margin']) {
+            if(parseInt(value) >= 100*input['safety_margin']) {
                 return {css: {'background-color': '#77DD77'}};  // green
             }
             else if(parseInt(value) >= 100) {
@@ -330,7 +329,7 @@ updated_dimension = function() {
             dest.children().slice(-1).remove();
         }
     }
-    // TODO add/sub inputs to/from accesses
+    // add/sub inputs to/from accesses
     var template = $('#array_access_offset_template');
     var dests = $('.array_access');
     for(var i=0; i<dests.length; i++) {
@@ -340,7 +339,7 @@ updated_dimension = function() {
                 var n = template.clone()
                 n.show()
                 n.removeAttr("id");
-                n[0].firstChild.nodeValue = '['+nextChar('i', dest.children.length);
+                //n[0].firstChild.nodeValue = '['+nextChar('i', dest.children.length);
                 n.find("input").attr("id", "offset_"+i+nextChar('i', dest.children.length));
                 n.appendTo(dest);
             } else {
@@ -370,4 +369,4 @@ $('#add_access').click(add_access_row);
 
 $("#dimensions")[0].value = "3";
 updated_dimension();
-//add_access_row();
+add_access_row();

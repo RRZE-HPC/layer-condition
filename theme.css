@@ -39,3 +39,16 @@ body {
     padding-right: 4px;
     margin-left: 2px;
 }
+
+.bracket-notation {
+    font-size: 120%;
+}
+
+pre {
+    font-family: Menlo, Monaco, monospace;
+    background-color: #333;
+    padding: 8px;
+    color: #CCC;
+    border-radius: 3px;
+    word-break: break-word;
+}
