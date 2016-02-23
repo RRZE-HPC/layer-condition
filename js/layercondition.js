@@ -82,7 +82,8 @@ var analyze_input = function(input) {
             // Calculate n-dimensional offset from center
             var offset = input['accesses'][array_name][i].slice(-1)[0]; // gets last element
             for(var d=1; d<input['dimensions']; d++) {
-                offset += (input['accesses'][array_name][i][d-1] * dim_sizes[d-1]);
+                offset += input['accesses'][array_name][i][input['dimensions']-1-d] 
+                          * dim_sizes[d-1];
             }
             abs_offsets[array_name].push(offset);
         }
@@ -90,7 +91,6 @@ var analyze_input = function(input) {
         // Sort numericaly for further processing
         abs_offsets[array_name].sort((a,b)=>a-b);
     }
-    console.log(abs_offsets['a'])
     
     // Split offsets into dimensional slices
     for(var dimension=0; dimension<input['dimensions']; dimension++) {
