@@ -135,8 +135,8 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-12">
                 <p>Putting it all together follows the same process as before. We take the number of slices \(\mathrm{n_{slices}}\), the relative offsets \(\mathrm{L_{rel.offsets}}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
-                <p>More interesting is what results from it: \(\mathrm{C_{req.}(N)}=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\).</p>
-                <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to the cache-size. To fit into a 32 KB cache we take: \[N=\frac{32*1024+16}{32}\approx1024\] Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
+                <p>More interesting is what results from it: \(\mathrm{C_{req.}(N)}=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means, that aslong as \(\mathrm{C_{req.}(N)}\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
+                <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to half the cache-size. Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. To fit into a 32 KB cache we take: \[N=\frac{\frac{1}{2}*32*1024+16}{32}\approx512\] Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
             </div>
         </div>
   </div>
