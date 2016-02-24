@@ -3,7 +3,9 @@
 // TODO use kilo and mega bytes when reporting bytes
 // TODO report which access were hits and misses in report, maybe with coloring
 
-values = obj => Object.keys(obj).map(key => obj[key]);
+function values(obj) {
+    return Object.keys(obj).map(function(key) {return obj[key]});
+}
 
 function nextChar(start, dist) {
     return String.fromCharCode(start.charCodeAt(0) + dist);
@@ -70,7 +72,7 @@ var analyze_input = function(input) {
     // Calculate dimensional size (how many elements are part of one dimension)
     for(var dimension=0; dimension<input['dimensions']; dimension++) {
         dim_sizes[dimension] = input['arrays']['dimension'].slice(-1-dimension).reduce(
-            (prev, curr) => prev*curr, 1);
+            function(prev, curr) {return prev*curr}, 1);
     }
     
     // Calculate absolute offsets for each array
@@ -88,7 +90,7 @@ var analyze_input = function(input) {
         }
         
         // Sort numericaly for further processing
-        abs_offsets[array_name].sort((a,b)=>a-b);
+        abs_offsets[array_name].sort(function(a,b) {return a-b});
     }
     
     // Split offsets into dimensional slices
@@ -140,7 +142,7 @@ var analyze_input = function(input) {
             }
             
             // max_reuse must be the largest reuse distance witin a slice per dimension
-            max_reuse = Math.max(max_reuse, ...reuse_dists[array_name]);
+            max_reuse = Math.max.apply(0, [max_reuse].concat(reuse_dists[array_name]));
         }
         
         var cache_requirement = 0;
@@ -170,11 +172,11 @@ var analyze_input = function(input) {
         if(dimension >= 1) {
             analysis['blockable_offsets'] =
                 // all new hits in this dimension can be blocked
-                values(hit_offsets).reduce((prev,curr)=>prev+curr.length, 0) -
+                values(hit_offsets).reduce(function(prev,curr){return prev+curr.length}, 0) -
                 values(lc_analysis[dimension+'D']['hit_offsets']).reduce(
-                    (prev,curr)=>prev+curr.length, 0) +
+                    function(prev,curr){return prev+curr.length}, 0) +
                 // plus all cached tails
-                values(miss_offsets).reduce((prev,curr)=>prev+curr.length, 0);
+                values(miss_offsets).reduce(function(prev,curr){return prev+curr.length}, 0);
         }
         
         analysis['inverse_occupation'] = {};
@@ -216,40 +218,42 @@ var display_results = function(input, results) {
     $("#results-table").bootstrapTable('destroy');
     // Add statistical information to table
     var data = [
-        $.extend({info: "longest reuse distance"},
-                 ...Object.keys(results).map(function(k) {
+        $.extend.apply({}, [{info: "longest reuse distance"}].concat(
+                 Object.keys(results).map(function(k) {
             var map = {};
             map[k] = 
                 results[k]['max_reuse_distance_elements'].toLocaleString('en-US')+" elements<br/>"+
                 results[k]['max_reuse_distance_bytes'].toLocaleString('en-US')+" bytes";
             return map;
-        })),
-        $.extend({info: "min. required cache size"},
-                 ...Object.keys(results).map(function(k) {
+        }))),
+        $.extend.apply({}, [{info: "min. required cache size"}].concat(
+                 Object.keys(results).map(function(k) {
             var map = {};
             map[k] = results[k]['total_cache_requirement'].toLocaleString('en-US')+" bytes";
             return map;
-        })),
-        $.extend({info: "cache misses"},
-                 ...Object.keys(results).map(function(k) {
+        }))),
+        $.extend.apply({}, [{info: "cache misses"}].concat(
+                 Object.keys(results).map(function(k) {
             var map = {};
-            map[k] = values(results[k]['miss_offsets']).reduce((prev,curr)=>prev+curr.length, 0);
+            map[k] = values(results[k]['miss_offsets']).reduce(
+                function(prev,curr){return prev+curr.length}, 0);
             return map;
-        })),
-        $.extend({info: "cache hits"},
-                 ...Object.keys(results).map(function(k) {
+        }))),
+        $.extend.apply({}, [{info: "cache hits"}].concat(
+                 Object.keys(results).map(function(k) {
             var map = {};
-            map[k] = values(results[k]['hit_offsets']).reduce((prev,curr)=>prev+curr.length, 0);
+            map[k] = values(results[k]['hit_offsets']).reduce(
+                function(prev,curr){return prev+curr.length}, 0);
             return map;
-        })),
+        }))),
     ];
     var stat_rows = data.length; // we need this to figure out where layer-conditions start at
     
     // Add LC analysis and predicted blocking to table
     for(var cache_level in input['cache_sizes']) {
         data.push(
-            $.extend({info: "layer-condition in "+cache_level},
-                      ...Object.keys(results).map(function(k) {
+            $.extend.apply({}, [{info: "layer-condition in "+cache_level}].concat(
+                    Object.keys(results).map(function(k) {
                 var map = {};
                 var fulfilled = results[k]['inverse_occupation'][cache_level];
                 if(isFinite(fulfilled)) {
@@ -258,11 +262,11 @@ var display_results = function(input, results) {
                     map[k] = "n/a";
                 }
                 return map;
-            }))
+            })))
         );
         data.push(
-            $.extend({info: "optimal blocking for "+cache_level},
-                      ...Object.keys(results).map(function(k) {
+            $.extend.apply({}, [{info: "optimal blocking for "+cache_level}].concat(
+                    Object.keys(results).map(function(k) {
                 var map = {};
                 var blocking = results[k]['optimal_blocking'][cache_level];
                 if(isFinite(blocking)) {
@@ -271,7 +275,7 @@ var display_results = function(input, results) {
                     map[k] = "n/a";
                 }
                 return map;
-            }))
+            })))
         );
     }
     
@@ -299,7 +303,7 @@ var display_results = function(input, results) {
         field: 'info', 
         align: 'right', 
         width: '200px',
-        cellStyle: (value, row, index) => firstColumnCellStyle
+        cellStyle: function(value, row, index) {return firstColumnCellStyle}
     }].concat(Object.keys(results).map(function(k) {
         return {
             field: k,
