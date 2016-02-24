@@ -1,4 +1,3 @@
-// TODO add links to results table stats-rows with information on how to get these values
 // TODO report more about orign of data (e.g., which two accesses lead to the reported reuse distance)
 // TODO check window scaling behaviour of form fields and result table
 // TODO use kilo and mega bytes when reporting bytes
@@ -229,6 +228,18 @@ var display_results = function(input, results) {
                  ...Object.keys(results).map(function(k) {
             var map = {};
             map[k] = results[k]['total_cache_requirement'].toLocaleString('en-US')+" bytes";
+            return map;
+        })),
+        $.extend({info: "cache misses"},
+                 ...Object.keys(results).map(function(k) {
+            var map = {};
+            map[k] = values(results[k]['miss_offsets']).reduce((prev,curr)=>prev+curr.length, 0);
+            return map;
+        })),
+        $.extend({info: "cache hits"},
+                 ...Object.keys(results).map(function(k) {
+            var map = {};
+            map[k] = values(results[k]['hit_offsets']).reduce((prev,curr)=>prev+curr.length, 0);
             return map;
         })),
     ];
