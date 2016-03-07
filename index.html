@@ -57,18 +57,22 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Layer-Conditions</h1>
-        <p>This will shortly explain what layer-conditions are.</p>
+        <p>We will shortly explain what layer-conditions are, give a detailed example and provide a tool for their interactive evaluation.</p>
       </div>
-      <p>Layer-conditions (LCs)[CITATION NEEDED] are a simple approximation of the cache requirement of a stencil code on architectures with a pure least-recently-used (LRU) caching policy. The model is assuming perfect LRU, which is not usually found in real-world architectures[CITATION NEEDED], but has proven to give a good estimation for pseudo LRU [CITATION NEEDED].</p>
+      <p><a href="http://arxiv.org/pdf/1410.5010.pdf">Layer-conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model is assuming perfect least-recently-used cache replacement policy, which has proven to give a good estimation on current architectures with a pseudo LRU caching policy (e.g. current Intel and AMD CPUs).</p>
+      <p>The two dimensional layer-condition is given by multiplying the stencil height (\(S_h [\mathrm{elements}]\)) with the matrix (or array) width (\(M_w [\mathrm{elements}]\)) and the size per element (\(s [\frac{bytes}{\mathrm{element}}]\)), if that fits into half the cache size (\(C_s [\mathrm{bytes}]\)) the layer condition is fulfilled and all accesses in two dimensions are reduced to one cache miss:
+      \[S_h*M_w*s\leq \frac{C_s}{2}\]</p>
       <div class="page-header">
         <h1>Example</h1>
-        Explaining layer-conditions in detail with a 2D 5 Point stencil kernel
+        We will now explaining a more generic version of the layer-conditions in detail by means of an example: a 2D 5-Point stencil kernel.
       </div>
       <div class="row">
           <div class="col-md-8">
-              <p>A simple example to explain stencil codes is the 2D 5 Point stencil kernel, which is a common stencil that results from a finite difference discretization. The code will look something like the one on the right.</p>
-              <p>As you can see, it iterates over the inner elements of an MxN array, reads four elements from <code>a</code> and writes back one element into array <code>b</code>. While doing so it does some additions and a multiplication with a scalar, which we will ignore since arithmetical operations do not effect the cache behaviour. Important are the array accesses <code>b[j][i]</code>, <code>a[j+1][i]</code>, <code>a[j][i-1]</code>, <code>a[j][i+1]</code>, <code>a[j+1][i]</code> and the array definition <code>a[M][N]</code> and <code>b[M][N]</code>, the combination of these dictate the cache requirement of this code.</p>
-              <p><mark>It is important to note</mark>, that this analysis requires the the order of iteration and the order of indices found in the array access is the same. E.g., access <code>a[i][j]</code> would not be suitable.</p>
+              <p>A simple example to explain stencil codes is the 2D 5-Point stencil kernel, which is a common stencil that results from a finite difference discretization. The code will look something like the one on the right.</p>
+              <p>As you can see, it iterates over the inner elements of an MxN array, reads four elements from <code>a</code> and writes back one element into array <code>b</code>. While doing so it does some additions and a multiplication with a scalar, which we will ignore since arithmetical operations do not affect the cache behavior. Important are the array accesses <code>b[j][i]</code>, <code>a[j+1][i]</code>, <code>a[j][i-1]</code>, <code>a[j][i+1]</code>, <code>a[j+1][i]</code> and the array definition <code>a[M][N]</code> and <code>b[M][N]</code>, the combination of these dictate the cache requirement of this code.</p>
+              <p>To understand the behavior we need to know how the arrays are serialized in memory and what caches do to speed up memory accesses:</p>
+              <p>In C, multidimensional arrays are stored in the <a href="https://en.wikipedia.org/wiki/Row-major_order">row-major order</a>, which stores consecutive elements in rows in consecutive memory locations: e.g., <code>a[j][i]</code> and <code>a[j][i+1]</code> will be located next to one another in memory. Thus, <code>a[j][i]</code> and <code>a[j+1][i]</code> will be far apart, as far as the inner dimension is long (in the example \(N\)). For the arrays in the example, the following two memory addresses are equivalent: <code>&amp;a[j][i]</code> and <code>a+j*N+i</code>.</p>
+              <p>Caches speed up subsequent memory accesses to the same location by retaining already accessed data in small&ndash;but fast&ndash;caches. This is done transparently and requires no special instructions to utilize. On current CPUs typically three cache-levels are found, L1 to L3, with increasing size and latency, and decreasing bandwidth. If a data can be served from a cache it is considered a cache hit, otherwise it is a cache hit and will be passed onto the next cache level or main memory. On each miss, the missed data will be pulled into the cache for further use. This means that caches are always full and some data needs to be evicted to free up space, which data is removed is decided by the replacement policy, which is typically some form of least-recently-used (LRU). LRU always removes the data which has not been used for the longest period.</p>
           </div><div class="col-md-4">
               <pre><code>double a[M][N];
 double b[M][N];
@@ -86,8 +90,8 @@ for(int j=1; j&lt;M-1; j++) {
         </div>
         <div class="row">
             <div class="col-md-8">
-                <p>If we plot these accesses onto a small array (here 5x7), it looks as seen on the right. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed leas-recently-used replacement policy (LRU).</p>
-                <p>If a new value needs to be stored in cache, an "old" value needs to be replaced or evicted from cache. In case of LRU, the value which has longest not been touch will be replaced.</p>
+                <p>If we plot these accesses onto a small array (here 5x7), it looks as seen on the right. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed LRU replacement policy.</p>
+                <p><mark>It is important to note</mark>, that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code to the right.</p>
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250px">
             </div>
@@ -102,7 +106,7 @@ for(int j=1; j&lt;M-1; j++) {
             <div class="col-md-8">
                 <p>First we slice our array access into one dimensional continuos segments. This will yield three slices for the array <code>a</code>, as seen on the right. Since <code>b</code> has only one access, it will always yield only one slice, no matter the dimension. We need to keep the total number of slices in mind for later computation:</p>
                 \[\mathrm{n_{slices}=3+1=4}\]
-                <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. Which are exactly two offset by two elements. We need to keep a list of offsets, to which we add this:</p>
+                <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. They are offset by two elements. We need to keep a list of offsets, to which we add this:</p>
                 \[\mathrm{L_{rel.offsets}=\{2\}}\]
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil-1dsliced.png" alt="2D-5pt Stencil" width="250px">
@@ -110,7 +114,7 @@ for(int j=1; j&lt;M-1; j++) {
         </div>
         <div class="row">
             <div class="col-md-12">
-                <p>Now we have everything we need to make a cache requirement estimation: the number of slices, the relative offsets and the size of an element. The later we know from the array definition, which was double and means \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\).</p>
+                <p>Now we have everything we need to make a cache requirement estimation: the number of slices, the relative offsets and the size of an element. The later we know from the array definition, which was double and has eight bytes per element (\(s=8\frac{\mathrm{byte}}{\mathrm{element}}\)).</p>
                 <p>The total cache requirement is the sum over all the relative offsets and the maximum over all relative offsets times the number of slices: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
                 <p>In our case this will turn out to be \(\mathrm{C_{req.}}=(2+2*4)*8=80\,\mathrm{Byte}\), which is ridiculously small and will fit in any cache. As long as \(\mathrm{C_{req.}}\) is smaller then half the cache, we will reuse at least one (number of entries in \(\mathrm{L_{rel.offsets}}\)) element.</p>
             </div>

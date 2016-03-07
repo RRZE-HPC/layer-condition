@@ -2,6 +2,7 @@
 // TODO check window scaling behaviour of form fields and result table
 // TODO use kilo and mega bytes when reporting bytes
 // TODO report which access were hits and misses in report, maybe with coloring
+// TODO fix navbar indentations
 
 function values(obj) {
     return Object.keys(obj).map(function(key) {return obj[key]});
