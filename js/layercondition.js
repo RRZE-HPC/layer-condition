@@ -3,6 +3,8 @@
 // TODO use kilo and mega bytes when reporting bytes
 // TODO report which access were hits and misses in report, maybe with coloring
 // TODO fix navbar indentations
+// TODO allow adding of examples / better input of offsets
+// TODO allow selection of typical cache configurations
 
 function values(obj) {
     return Object.keys(obj).map(function(key) {return obj[key]});
@@ -19,7 +21,7 @@ var gather_inputs = function() {
     
     var array_sizes = [];
     for(var i=0; i<dims; i++) {
-        array_sizes.push(parseInt($('#ar_size'+i).val()));
+        array_sizes.unshift(parseInt($('#ar_size'+i).val()));
     }
     
     var accesses = {};
@@ -34,7 +36,7 @@ var gather_inputs = function() {
             if(isNaN(val)) {
                 break;
             }
-            offsets.push(val)
+            offsets.unshift(val)
         }
         if(offsets.length == dims) {
             if(array_name in accesses) {
@@ -258,7 +260,7 @@ var display_results = function(input, results) {
                 var map = {};
                 var fulfilled = results[k]['inverse_occupation'][cache_level];
                 if(isFinite(fulfilled)) {
-                    map[k] = Math.round(fulfilled*100) + "%";
+                    map[k] = Math.round(fulfilled*100) + "%*";
                 } else {
                     map[k] = "n/a";
                 }
@@ -337,12 +339,13 @@ updated_dimension = function() {
     var dest = $('#array_size');
     while(dest.children().length != dims) {
         if(dest.children().length < dims) {
+            // TODO add and delete from front
             var n = template.clone()
             n.show()
             n.find("input").attr("id", "ar_size"+dest.children().length);
-            n.appendTo(dest);
+            n.prependTo(dest);
         } else {
-            dest.children().slice(-1).remove();
+            dest.children()[0].remove();
         }
     }
     // add/sub inputs to/from accesses
@@ -351,15 +354,15 @@ updated_dimension = function() {
     for(var i=0; i<dests.length; i++) {
         dest = dests[i];
         while(dest.children.length != dims) {
+            // TODO add and delete from front
             if(dest.children.length < dims) {
                 var n = template.clone()
                 n.show()
                 n.removeAttr("id");
-                //n[0].firstChild.nodeValue = '['+nextChar('i', dest.children.length);
                 n.find("input").attr("id", "offset_"+i+nextChar('i', dest.children.length));
-                n.appendTo(dest);
+                n.prependTo(dest);
             } else {
-                dest.children[dest.children.length-1].remove();
+                dest.children[0].remove();
             }
         }
     }
