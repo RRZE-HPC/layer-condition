@@ -2,8 +2,7 @@
 // TODO check window scaling behaviour of form fields and result table
 // TODO use kilo and mega bytes when reporting bytes
 // TODO report which access were hits and misses in report, maybe with coloring
-// TODO fix navbar indentations
-// TODO allow adding of examples / better input of offsets
+// TODO better input of offsets
 // TODO allow selection of typical cache configurations
 
 function values(obj) {
@@ -288,7 +287,7 @@ var display_results = function(input, results) {
     }
     var layerConditionCellStyle = function(value, row, index) {
         if(index >= stat_rows && (
-                value == "n/a" || value == null || value.toString().endsWith("%"))) {
+                value == "n/a" || value == null || value.toString().endsWith("%*"))) {
             if(parseInt(value) >= 100*input['safety_margin']) {
                 return {css: {'background-color': '#77DD77'}};  // green
             }
@@ -384,8 +383,85 @@ var add_access_row = function() {
     updated_dimension();
 };
 
+// Update navbar when clicked
+$(".nav a").on("click", function(){
+   $(".nav").find(".active").removeClass("active");
+   $(this).parent().addClass("active");
+});
+
+scatter_inputs = function(input) {
+    // Fill form according to input
+    $("#dimensions")[0].value = input['dimensions'];
+    $("#dimensions").change();
+    
+    $('#type')[0].value = input['arrays']['type'];
+    for(var i=0; i<input['dimensions']; i++) {
+        $('#ar_size'+(input['dimensions']-1-i))[0].value = input['arrays']['dimension'][i];
+    }
+    
+    // row counter
+    var i = 0;
+    for(var var_name in input['accesses']) {
+        for(var j=0; j<input['accesses'][var_name].length; j++) {
+            // Check that another access form fields row is available
+            if($('#access_rows').children().length < i+1) {
+                add_access_row();
+            }
+            
+            $('#access_'+i)[0].value = var_name;
+            
+            // add dimensions
+            for(var k=0; k<input['dimensions']; k++) {
+                $('#offset_'+i+nextChar('i', input['dimensions']-1-k))[0].value =
+                     input['accesses'][var_name][j][k];
+            }
+            
+            // increment row counter
+            i++;
+        }
+    }
+    
+    // Update cache sizes
+    $('#l1_size')[0].value = Math.round(input['cache_sizes']['L1']/1024);
+    $('#l2_size')[0].value = Math.round(input['cache_sizes']['L2']/1024);
+    $('#l3_size')[0].value = Math.round(input['cache_sizes']['L3']/1024);
+    
+    // Update safety margin
+    $("#safety-margin")[0].value = input['safety_margin'];
+    
+    console.log("updated form");
+}
+
+// wait for calculator hash and parse appended form information
+window.onhashchange = function(){
+    var hash = location.hash.substr(1);
+    
+    // We only intercept hashes that start with calculator and contain a hashbang
+    if(!(hash.startsWith('calculator') && hash.search('#!') >= 0)) return;
+    // example encoding:
+    // #calculator#!{"dimensions":2,"arrays":{"type":"double","dimension":[1024,1024]},"accesses":{"a":[[0,1],[0,-1],[-1,0],[1,0]],"b":[[0,0]]},"cache_sizes":{"L1":32768,"L2":262144,"L3":20971520},"safety_margin":2}
+    
+    // extract relevant string
+    data_str = hash.substr(hash.search('#!')+2);
+    data = JSON.parse(data_str);
+    
+    // Fill form accordingly
+    scatter_inputs(data);
+    
+    // Set location to calculator, so we end up at the right place
+    location.hash = 'calculator';
+    
+    // Calculate results
+    $("#calc_btn").click
+};
+
+// Since the event is only triggered when the hash changes, we need to trigger
+// the event now, to handle the hash the page may have loaded with.
+window.onhashchange();
+
 $('#add_access').click(add_access_row);
 
+// Default values
 $("#dimensions")[0].value = "3";
 updated_dimension();
 add_access_row();
