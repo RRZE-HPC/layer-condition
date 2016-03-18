@@ -237,15 +237,19 @@ var display_results = function(input, results) {
         $.extend.apply({}, [{info: "cache misses"}].concat(
                  Object.keys(results).map(function(k) {
             var map = {};
-            map[k] = values(results[k]['miss_offsets']).reduce(
+            misses = values(results[k]['miss_offsets']).reduce(
                 function(prev,curr){return prev+curr.length}, 0);
+            map[k] = misses.toLocaleString('en-US')+" elements<br/>"+
+                     (misses*input['arrays']['bytes_per_element']).toLocaleString('en-US')+" bytes";
             return map;
         }))),
         $.extend.apply({}, [{info: "cache hits"}].concat(
                  Object.keys(results).map(function(k) {
             var map = {};
-            map[k] = values(results[k]['hit_offsets']).reduce(
+            hits = values(results[k]['hit_offsets']).reduce(
                 function(prev,curr){return prev+curr.length}, 0);
+            map[k] = hits.toLocaleString('en-US')+" elements<br/>"+
+                     (hits*input['arrays']['bytes_per_element']).toLocaleString('en-US')+" bytes";
             return map;
         }))),
     ];
