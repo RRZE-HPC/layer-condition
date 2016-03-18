@@ -95,7 +95,7 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-8">
                 <p>If we plot these accesses onto a small array (here 5x7), it looks as seen in the graphic. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed LRU replacement policy.</p>
-                <p><mark>It is important to note</mark>, that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code.</p>
+                <p><mark>It is important to note</mark> that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code.</p>
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250">
             </div>
@@ -143,7 +143,7 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-12">
                 <p>Putting it all together follows the same process as before. We take the number of slices \(n_\mathrm{slices}\), the relative offsets \(L_\mathrm{rel.offsets}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[C_\mathrm{req.}=\left(\sum L_\mathrm{rel.offsets}+\max(L_\mathrm{rel.offsets})*n_\mathrm{slices}\right)*s\]</p>
-                <p>More interesting is what results from it: \(C_\mathrm{req.}(N)=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means, that aslong as \(C_\mathrm{req.}(N)\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
+                <p>More interesting is what results from it: \(C_\mathrm{req.}(N)=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means that aslong as \(C_\mathrm{req.}(N)\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
                 <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to half the cache-size. Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. To fit into a 32 KB cache we take: \[N=\frac{\frac{1}{2}*32*1024+16}{32}\approx512\] Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
             </div>
         </div>
