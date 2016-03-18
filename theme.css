@@ -40,6 +40,13 @@ body {
     margin-left: 2px;
 }
 
+.small-cache-field {
+    width: 40px !important;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: 2px;
+}
+
 .bracket-notation {
     font-size: 120%;
 }

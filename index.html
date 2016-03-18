@@ -190,8 +190,7 @@ for(int j=1; j&lt;M-1; j++) {
                     <span id="array_size_template" hidden>
                         [<input type="text" class="form-control small-field" id="ar_size" value="1024">]
                     </span>
-                    <span id="array_size" class="bracket-notation">
-                    </span>
+                    <span id="array_size" class="bracket-notation"></span>
                 </div>
             <p class="help-block">
                 Number and size of elements. All arrays have to be of same size.
@@ -220,42 +219,42 @@ for(int j=1; j&lt;M-1; j++) {
             <div class="col-sm-10">
                 <div class="form-group form-inline">
                     <label for="l1_size">L1</label>
-                    <div class="input-group col-xs-2">
+                    <div class="input-group">
                         <input type="number" class="form-control text-right cache-field" 
                             id="l1_size" value="32">
                         <div class="input-group-addon">KB</div>
                     </div>
                     <label for="l1_cores">shared by</label>
-                    <div class="input-group col-xs-2">
-                        <input type="number" class="form-control text-right smaller-field" 
+                    <div class="input-group">
+                        <input type="number" class="form-control text-right small-cache-field" 
                             id="l1_cores" value="1">
                         <div class="input-group-addon">core(s)</div>
                     </div>
                 </div>
                 <div class="form-group form-inline">
                     <label for="l3_size">L2</label>
-                    <div class="input-group col-xs-2">
+                    <div class="input-group">
                         <input type="number" class="form-control text-right cache-field" 
                             id="l2_size" value="256">
                         <div class="input-group-addon">KB</div>
                     </div>
                     <label for="l2_cores">shared by</label>
-                    <div class="input-group col-xs-2">
-                        <input type="number" class="form-control text-right smaller-field" 
+                    <div class="input-group">
+                        <input type="number" class="form-control text-right small-cache-field" 
                             id="l2_cores" value="1">
                         <div class="input-group-addon">core(s)</div>
                     </div>
                 </div>
                 <div class="form-group form-inline">
                     <label for="l3_size">L3</label>
-                    <div class="input-group col-xs-2">
+                    <div class="input-group">
                         <input type="number" class="form-control text-right cache-field" 
                             id="l3_size" value="20480">
                         <div class="input-group-addon">KB</div>
                     </div>
                     <label for="l3_cores">shared by</label>
-                    <div class="input-group col-xs-2nicht ">
-                        <input type="number" class="form-control text-right smaller-field" 
+                    <div class="input-group">
+                        <input type="number" class="form-control text-right small-cache-field" 
                             id="l3_cores" value="1">
                         <div class="input-group-addon">core(s)</div>
                     </div>
@@ -290,8 +289,10 @@ for(int j=1; j&lt;M-1; j++) {
       <div class="page-header">
         <h2>Results</h2>
       </div>
-      <table id="results-table"></table>
-      * Percentage says how much of the cache requirement is fulfilled in the given cache level.
+      <div id="results-table-div">
+          <table id="results-table"></table>
+          * Percentage says how much of the cache requirement is fulfilled in the given cache level.
+      </div>
       </section>
       
   </div>

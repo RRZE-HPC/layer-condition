@@ -349,6 +349,14 @@ $("#calc_btn").click(function() {
     var results = analyze_input(input);
     console.log(results);
     display_results(input, results);
+    
+    // Add link with current configuration
+    $('#pre-filled-link').remove();
+    var link = document.createElement("a");
+    link.id = "pre-filled-link";
+    link.appendChild(document.createTextNode("Link to pre-filled form."));
+    link.href = "#calculator%23!"+encodeURIComponent(JSON.stringify(gather_inputs()));
+    $("#results")[0].insertBefore(link, $("#results-table-div")[0]);
 });
 
 updated_dimension = function() {
