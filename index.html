@@ -219,6 +219,12 @@ for(int j=1; j&lt;M-1; j++) {
                             id="l1_size" value="32">
                         <div class="input-group-addon">KB</div>
                     </div>
+                    <label for="l1_cores">shared by</label>
+                    <div class="input-group col-xs-2">
+                        <input type="number" class="form-control text-right smaller-field" 
+                            id="l1_cores" value="1">
+                        <div class="input-group-addon">core(s)</div>
+                    </div>
                 </div>
                 <div class="form-group form-inline">
                     <label for="l3_size">L2</label>
@@ -226,6 +232,12 @@ for(int j=1; j&lt;M-1; j++) {
                         <input type="number" class="form-control text-right cache-field" 
                             id="l2_size" value="256">
                         <div class="input-group-addon">KB</div>
+                    </div>
+                    <label for="l2_cores">shared by</label>
+                    <div class="input-group col-xs-2">
+                        <input type="number" class="form-control text-right smaller-field" 
+                            id="l2_cores" value="1">
+                        <div class="input-group-addon">core(s)</div>
                     </div>
                 </div>
                 <div class="form-group form-inline">
@@ -235,20 +247,19 @@ for(int j=1; j&lt;M-1; j++) {
                             id="l3_size" value="20480">
                         <div class="input-group-addon">KB</div>
                     </div>
+                    <label for="l3_cores">shared by</label>
+                    <div class="input-group col-xs-2">
+                        <input type="number" class="form-control text-right smaller-field" 
+                            id="l3_cores" value="1">
+                        <div class="input-group-addon">core(s)</div>
+                    </div>
                 </div>
                 <p class="help-block">
                     Sizes of data caches (all are assumed inclusive with least-recently-used
-                    caching).
-                </p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label">Used Cores</label>
-            <div class="col-sm-10">
-                <input type="number" id="cores" class="form-control smaller-field" value="1">
-                <p class="help-block">
-                    Number of cores used by this code. This will lead to a size reduction of the
-                    shared L3 cache.
+                    caching). Sharing means that the available cache size will be divided by the
+                    number of cores. For SMT-2, set sharing of L1 and L2 to 2 cores. For 4 threads 
+                    with SMT-1, set L3 (usually shared by all cores) to 3 cores and L1 and L2 to 1 
+                    core.
                 </p>
             </div>
         </div>

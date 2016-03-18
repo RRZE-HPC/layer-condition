@@ -59,9 +59,9 @@ var gather_inputs = function() {
             [1,0,0], [-1,0,0]],
             b: [[0,0,0]]}, /*/
         cache_sizes: {
-            L1: parseInt($('#l1_size').val())*1024,
-            L2: parseInt($('#l2_size').val())*1024,
-            L3: Math.floor(parseInt($('#l3_size').val())*1024/parseInt($('#cores').val()))},
+            L1: Math.floor(parseInt($('#l1_size').val())*1024/parseInt($('#l1_cores').val())),
+            L2: Math.floor(parseInt($('#l2_size').val())*1024/parseInt($('#l2_cores').val())),
+            L3: Math.floor(parseInt($('#l3_size').val())*1024/parseInt($('#l3_cores').val()))},
         safety_margin: parseInt($("#safety-margin").val())};
 }
 
