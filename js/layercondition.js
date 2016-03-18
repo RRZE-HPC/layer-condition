@@ -443,7 +443,7 @@ window.onhashchange = function(){
     
     // extract relevant string
     data_str = hash.substr(hash.search('#!')+2);
-    data = JSON.parse(data_str);
+    data = JSON.parse(decodeURI(data_str));
     
     // Fill form accordingly
     scatter_inputs(data);
