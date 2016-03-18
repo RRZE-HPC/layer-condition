@@ -427,6 +427,9 @@ scatter_inputs = function(input) {
         $('#ar_size'+(input['dimensions']-1-i))[0].value = input['arrays']['dimension'][i];
     }
     
+    // clear access rows
+    $('#access_rows').children().remove();
+    
     // row counter
     var i = 0;
     for(var var_name in input['accesses']) {
