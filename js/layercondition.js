@@ -441,13 +441,13 @@ window.onhashchange = function(){
     var hash = location.hash.substr(1);
     
     // We only intercept hashes that start with calculator and contain a hashbang
-    if(!(hash.startsWith('calculator') && hash.search('#!') >= 0)) return;
+    if(!(hash.startsWith('calculator') && hash.search('%23!') >= 0)) return;
     // example encoding:
     // #calculator#!{"dimensions":2,"arrays":{"type":"double","dimension":[1024,1024]},"accesses":{"a":[[0,1],[0,-1],[-1,0],[1,0]],"b":[[0,0]]},"cache_sizes":{"L1":32768,"L2":262144,"L3":20971520},"safety_margin":2}
     
     // extract relevant string
-    data_str = hash.substr(hash.search('#!')+2);
-    data = JSON.parse(decodeURI(data_str));
+    data_str = hash.substr(hash.search('%23!')+4);
+    data = JSON.parse(decodeURIComponent(data_str));
     
     // Fill form accordingly
     scatter_inputs(data);
@@ -466,6 +466,5 @@ window.onhashchange();
 $('#add_access').click(add_access_row);
 
 // Default values
-$("#dimensions")[0].value = "3";
 updated_dimension();
 add_access_row();

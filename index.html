@@ -28,7 +28,7 @@
     <![endif]-->
   </head>
 
-  <body role="document">
+  <body>
 
     <!-- Fixed navbar -->
     <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -65,9 +65,9 @@
       <p>Consider a 2D 5-Point stencil (explained in more detail in next section) on a 1024x1024 matrix with single precision floating point numbers: the stencil has a hight of three rows (\(S_h=3\,\mathrm{elements}\)), the matrix has a width of 1024 columns (\(M_w=1024\,\mathrm{elements}\)) and a single precision floating point number takes four bytes (\(s=4\,\frac{\mathrm{bytes}}{\mathrm{element}}\)). A typical code will use two arrays, one for input and one for output, and swap them after each sweep. Therefore the applicable cache size is half of the actual cache size (\(C_a = \frac{C_s}{2}\,\mathrm{bytes}\)):
           \[(3*1024*4)\,\mathrm{bytes}\leq \frac{C_s}{2}\]
       </p>
-      <p>Any cache larger than 24 kilobyte fulfills the condition and thus leads to cache hits to all but two elements (leading elements from input matrix and output matrix). This example can also be calculated with our interactive tool: <a href="#calculator#!{&quot;dimensions&quot;:2,&quot;arrays&quot;:{&quot;type&quot;:&quot;double&quot;,&quot;bytes_per_element&quot;:8,&quot;dimension&quot;:[1024,1024]},&quot;accesses&quot;:{&quot;a&quot;:[[0,1],[0,-1],[1,0],[-1,0]],&quot;b&quot;:[[0,0]]},&quot;cache_sizes&quot;:{&quot;L1&quot;:32768,&quot;L2&quot;:262144,&quot;L3&quot;:20971520},&quot;safety_margin&quot;:2}">load example</a>. The approach explained here only works if the stencil is without row gaps. To overcome this problem we propose a more detailed analysis explained in the following section.</p>
+      <p>Any cache larger than 24 kilobyte fulfills the condition and thus leads to cache hits to all but two elements (leading elements from input matrix and output matrix). This example can also be calculated with our interactive tool: <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A32768%2C%22L2%22%3A262144%2C%22L3%22%3A20971520%7D%2C%22safety_margin%22%3A2%7D">load example</a>. The approach explained here only works if the stencil is without row gaps. To overcome this problem we propose a more detailed analysis explained in the following section.</p>
       <div class="page-header">
-        <h1>Detailed Analysis</h1>
+        <h2>Detailed Analysis</h2>
         We will now explaining a more generic version of the layer-conditions in detail by means of an example, with the same 2D 5-Point stencil kernel.
       </div>
       <div class="row">
@@ -97,7 +97,7 @@ for(int j=1; j&lt;M-1; j++) {
                 <p>If we plot these accesses onto a small array (here 5x7), it looks as seen in the graphic. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed LRU replacement policy.</p>
                 <p><mark>It is important to note</mark>, that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code.</p>
             </div><div class="col-md-4">
-                <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250px">
+                <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250">
             </div>
         </div>
         <div class="row">
@@ -113,7 +113,7 @@ for(int j=1; j&lt;M-1; j++) {
                 <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. They are offset by two elements. We need to keep a list of offsets, to which we add this:</p>
                 \[L_\mathrm{rel.offsets}=\{2\}\]
             </div><div class="col-md-4">
-                <img class="img-thumbnail" src="img/stencil-1dsliced.png" alt="2D-5pt Stencil" width="250px">
+                <img class="img-thumbnail" src="img/stencil-1dsliced.png" alt="2D-5pt Stencil" width="250">
             </div>
         </div>
         <div class="row">
@@ -137,7 +137,7 @@ for(int j=1; j&lt;M-1; j++) {
                 <p>To calculate the relative offsets between accesses within each slice are a little more laborious. We have four accesses in <code>a</code>, thus three relative offsets to add to our list: \(N-1\) elements between <code>a[j-1][i]</code> and <code>a[j][i-1]</code>, \(2\) elements between <code>a[j][i-1]</code> and <code>a[j][i+1]</code> (as in the 1D case), and again \(N-1\) elements <code>a[j+1][i]</code> and <code>a[j][i+1]</code>.</p>
                 \[L_\mathrm{rel.offsets}=\{N-1, 2, N-1\}\]
             </div><div class="col-md-4">
-                <img class="img-thumbnail" src="img/stencil-2dsliced.png" alt="2D-5pt Stencil" width="250px">
+                <img class="img-thumbnail" src="img/stencil-2dsliced.png" alt="2D-5pt Stencil" width="250">
             </div>
         </div>
         <div class="row">
@@ -151,8 +151,8 @@ for(int j=1; j&lt;M-1; j++) {
   <div class="container theme-showcase" role="main">
       <section id="calculator">
       <div class="page-header">
-        <h1>Interactive Calculator</h1>
-        Calculate LCs using our interactive tool. <a href="#calculator#!{&quot;dimensions&quot;:2,&quot;arrays&quot;:{&quot;type&quot;:&quot;double&quot;,&quot;bytes_per_element&quot;:8,&quot;dimension&quot;:[1024,1024]},&quot;accesses&quot;:{&quot;a&quot;:[[0,1],[0,-1],[1,0],[-1,0]],&quot;b&quot;:[[0,0]]},&quot;cache_sizes&quot;:{&quot;L1&quot;:32768,&quot;L2&quot;:262144,&quot;L3&quot;:20971520},&quot;safety_margin&quot;:2}">Fill form with 2D-5pt example.</a>
+        <h2>Interactive Calculator</h2>
+        Calculate LCs using our interactive tool. <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A32768%2C%22L2%22%3A262144%2C%22L3%22%3A20971520%7D%2C%22safety_margin%22%3A2%7D">Fill form with 2D-5pt example.</a>
       </div>
       <form class="form-horizontal">
         <div class="form-group">
@@ -193,7 +193,7 @@ for(int j=1; j&lt;M-1; j++) {
             </div>
         </div>
         <div class="form-group">
-            <label for="access[]" class="col-sm-2 control-label">Accesses</label>
+            <label class="col-sm-2 control-label">Accesses</label>
             <div class="col-sm-10">
                 <span id="array_access_offset_template" hidden>
                     [<input type="text" class="form-control smaller-field" id="offset">]
@@ -271,7 +271,7 @@ for(int j=1; j&lt;M-1; j++) {
       
       <section id="results" hidden>
       <div class="page-header">
-        <h1>Results</h1>
+        <h2>Results</h2>
       </div>
       <table id="results-table"></table>
       * Percentage says how much of the cache requirement is fulfilled in the given cache level.
@@ -282,7 +282,7 @@ for(int j=1; j&lt;M-1; j++) {
       
       <section id="contact">
       <div class="page-header">
-        <h1>Contact</h1>
+        <h2>Contact</h2>
         Want to know more?
       </div>
       <p>Author: <a href="mailto:julian.hammer@fau.de">Julian Hammer</a>, licensed under AGPLv3.</p>
@@ -297,7 +297,7 @@ for(int j=1; j&lt;M-1; j++) {
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A=="crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha256-KXn5puMvxCw+dAYznun+drMdG1IFl3agK0p/pqT9KAo= sha512-2e8qq0ETcfWRI4HJBzQiA3UoyFk6tbNyG+qSaIBZLyW9Xf3sWZHN/lxe9fTh1U45DpPf07yj94KsUHHWe4Yk1A==" crossorigin="anonymous"></script>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/locale/bootstrap-table-en-US.min.js"></script>
