@@ -40,7 +40,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Layer-Condition</a>
+          <a class="navbar-brand" href="#">Layer Condition</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
@@ -56,7 +56,7 @@
 
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Layer-Conditions</h1>
+        <h1>Layer Conditions</h1>
         <p>We will shortly explain what layer-conditions are, give a detailed example and provide a tool for their interactive evaluation.</p>
       </div>
       <p><a href="http://arxiv.org/pdf/1410.5010.pdf">Layer-conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model is assuming perfect least-recently-used cache replacement policy, which has proven to give a good estimation on current architectures with a pseudo LRU caching policy (e.g. current Intel and AMD CPUs).</p>
@@ -105,18 +105,18 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-8">
                 <p>First we slice our array access into one dimensional continuos segments. This will yield three slices for the array <code>a</code>, as seen on the right. Since <code>b</code> has only one access, it will always yield only one slice, no matter the dimension. We need to keep the total number of slices in mind for later computation:</p>
-                \[\mathrm{n_{slices}=3+1=4}\]
+                \[n_\mathrm{slices}=3+1=4\]
                 <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. They are offset by two elements. We need to keep a list of offsets, to which we add this:</p>
-                \[\mathrm{L_{rel.offsets}=\{2\}}\]
+                \[L_\mathrm{rel.offsets}=\{2\}\]
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil-1dsliced.png" alt="2D-5pt Stencil" width="250px">
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <p>Now we have everything we need to make a cache requirement estimation: the number of slices, the relative offsets and the size of an element. The later we know from the array definition, which was double and has eight bytes per element (\(s=8\frac{\mathrm{byte}}{\mathrm{element}}\)).</p>
-                <p>The total cache requirement is the sum over all the relative offsets and the maximum over all relative offsets times the number of slices: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
-                <p>In our case this will turn out to be \(\mathrm{C_{req.}}=(2+2*4)*8=80\,\mathrm{Byte}\), which is ridiculously small and will fit in any cache. As long as \(\mathrm{C_{req.}}\) is smaller then half the cache, we will reuse at least one (number of entries in \(\mathrm{L_{rel.offsets}}\)) element.</p>
+                <p>Now we have everything we need to make a cache requirement estimation: the number of slices, the relative offsets and the size of an element. The latter we know from the array definition, which was double and has eight bytes per element (\(s=8\frac{\mathrm{byte}}{\mathrm{element}}\)).</p>
+                <p>The total cache requirement is the sum over all the relative offsets and the maximum over all relative offsets times the number of slices: \[C_\mathrm{req.}=\left(\sum L_\mathrm{rel.offsets}+\max(L_\mathrm{rel.offsets})*n_\mathrm{slices}\right)*s\]</p>
+                <p>In our case this will turn out to be \(C_\mathrm{req.}=(2+2*4)*8=80\,\mathrm{Byte}\), which is ridiculously small and will fit in any cache. As long as \(C_\mathrm{req.}\) is smaller then half the cache, we will reuse at least one (number of entries in \(L_\mathrm{rel.offsets}\)) element.</p>
             </div>
         </div>
         
@@ -129,17 +129,17 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-8">
                 <p>Again, we slice our array access into two dimensional continuos segments. This is easy, since the array only has two dimensions, therefore we have only one slice per array. One for <code>a</code> and another for <code>b</code>:</p>
-                \[\mathrm{n_{slices}=1+1=2}\]
+                \[n_\mathrm{slices}=1+1=2\]
                 <p>To calculate the relative offsets between accesses within each slice are a little more laborious. We have four accesses in <code>a</code>, thus three relative offsets to add to our list: \(N-1\) elements between <code>a[j-1][i]</code> and <code>a[j][i-1]</code>, \(2\) elements between <code>a[j][i-1]</code> and <code>a[j][i+1]</code> (as in the 1D case), and again \(N-1\) elements <code>a[j+1][i]</code> and <code>a[j][i+1]</code>.</p>
-                \[\mathrm{L_{rel.offsets}=\{N-1, 2, N-1\}}\]
+                \[L_\mathrm{rel.offsets}=\{N-1, 2, N-1\}\]
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil-2dsliced.png" alt="2D-5pt Stencil" width="250px">
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <p>Putting it all together follows the same process as before. We take the number of slices \(\mathrm{n_{slices}}\), the relative offsets \(\mathrm{L_{rel.offsets}}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[\mathrm{C_{req.}}=\left(\sum\mathrm{L_{rel.offsets}}+\max(\mathrm{L_{rel.offsets}})*\mathrm{count}(\mathrm{n_{slices}})\right)*s\]</p>
-                <p>More interesting is what results from it: \(\mathrm{C_{req.}(N)}=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means, that aslong as \(\mathrm{C_{req.}(N)}\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
+                <p>Putting it all together follows the same process as before. We take the number of slices \(n_\mathrm{slices}\), the relative offsets \(L_\mathrm{rel.offsets}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[C_\mathrm{req.}=\left(\sum L_\mathrm{rel.offsets}+\max(L_\mathrm{rel.offsets})*n_\mathrm{slices}\right)*s\]</p>
+                <p>More interesting is what results from it: \(C_\mathrm{req.}(N)=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means, that aslong as \(C_\mathrm{req.}(N)\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
                 <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to half the cache-size. Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. To fit into a 32 KB cache we take: \[N=\frac{\frac{1}{2}*32*1024+16}{32}\approx512\] Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
             </div>
         </div>
