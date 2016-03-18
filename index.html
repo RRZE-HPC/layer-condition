@@ -65,7 +65,7 @@
       <p>Consider a 2D 5-Point stencil (explained in more detail in next section) on a 1024x1024 matrix with single precision floating point numbers: the stencil has a hight of three rows (\(S_h=3\,\mathrm{elements}\)), the matrix has a width of 1024 columns (\(M_w=1024\,\mathrm{elements}\)) and a single precision floating point number takes four bytes (\(s=4\,\frac{\mathrm{bytes}}{\mathrm{element}}\)). A typical code will use two arrays, one for input and one for output, and swap them after each sweep. Therefore the applicable cache size is half of the actual cache size (\(C_a = \frac{C_s}{2}\,\mathrm{bytes}\)):
           \[(3*1024*4)\,\mathrm{bytes}\leq \frac{C_s}{2}\]
       </p>
-      <p>Any cache larger than 24 kilobyte fulfills the condition and thus leads to cache hits to all but two elements (leading elements from input matrix and output matrix). This example can also be calculated with our interactive tool: <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A32768%2C%22L2%22%3A262144%2C%22L3%22%3A20971520%7D%2C%22safety_margin%22%3A2%7D">load example</a>. The approach explained here only works if the stencil is without row gaps. To overcome this problem we propose a more detailed analysis explained in the following section.</p>
+      <p>Any cache larger than 24 kilobyte fulfills the condition and thus leads to cache hits to all but two elements (leading elements from input matrix and output matrix). This example can also be calculated with our interactive tool: <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">load example</a>. The approach explained here only works if the stencil is without row gaps. To overcome this problem we propose a more detailed analysis explained in the following section.</p>
       <div class="page-header">
         <h2>Detailed Analysis</h2>
         We will now explaining a more generic version of the layer-conditions in detail by means of an example, with the same 2D 5-Point stencil kernel.
@@ -152,7 +152,13 @@ for(int j=1; j&lt;M-1; j++) {
       <section id="calculator">
       <div class="page-header">
         <h2>Interactive Calculator</h2>
-        Calculate LCs using our interactive tool. <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A32768%2C%22L2%22%3A262144%2C%22L3%22%3A20971520%7D%2C%22safety_margin%22%3A2%7D">Fill form with 2D-5pt example.</a>
+        Calculate LCs using our interactive tool. Fill form with examples:
+        <ul>
+            <li><a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">2D-5pt</a> (described in detail above)</li>
+            <li><a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%2C%5B1%2C1%5D%2C%5B-1%2C-1%5D%2C%5B1%2C-1%5D%2C%5B-1%2C1%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">2D-9pt</a></li>
+            <li><a href="#calculator%23!%7B%22dimensions%22%3A3%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C0%2C1%5D%2C%5B0%2C0%2C-1%5D%2C%5B0%2C-1%2C0%5D%2C%5B0%2C1%2C0%5D%2C%5B1%2C0%2C0%5D%2C%5B-1%2C0%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">3D-7pt</a></li>
+            <li><a href="#calculator%23!%7B%22dimensions%22%3A3%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B-1%2C-1%2C-1%5D%2C%5B-1%2C-1%2C0%5D%2C%5B-1%2C-1%2C1%5D%2C%5B-1%2C0%2C-1%5D%2C%5B-1%2C0%2C0%5D%2C%5B-1%2C0%2C1%5D%2C%5B-1%2C1%2C-1%5D%2C%5B-1%2C1%2C0%5D%2C%5B-1%2C1%2C1%5D%2C%5B0%2C-1%2C-1%5D%2C%5B0%2C-1%2C0%5D%2C%5B0%2C-1%2C1%5D%2C%5B0%2C0%2C-1%5D%2C%5B0%2C0%2C1%5D%2C%5B0%2C1%2C-1%5D%2C%5B0%2C1%2C0%5D%2C%5B0%2C1%2C1%5D%2C%5B1%2C-1%2C-1%5D%2C%5B1%2C-1%2C0%5D%2C%5B1%2C-1%2C1%5D%2C%5B1%2C0%2C-1%5D%2C%5B1%2C0%2C0%5D%2C%5B1%2C0%2C1%5D%2C%5B1%2C1%2C-1%5D%2C%5B1%2C1%2C0%5D%2C%5B1%2C1%2C1%5D%5D%2C%22b%22%3A%5B%5B0%2C0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">3D-27pt</a></li>
+        </ul>
       </div>
       <form class="form-horizontal">
         <div class="form-group">
@@ -248,7 +254,7 @@ for(int j=1; j&lt;M-1; j++) {
                         <div class="input-group-addon">KB</div>
                     </div>
                     <label for="l3_cores">shared by</label>
-                    <div class="input-group col-xs-2">
+                    <div class="input-group col-xs-2nicht ">
                         <input type="number" class="form-control text-right smaller-field" 
                             id="l3_cores" value="1">
                         <div class="input-group-addon">core(s)</div>
@@ -258,8 +264,8 @@ for(int j=1; j&lt;M-1; j++) {
                     Sizes of data caches (all are assumed inclusive with least-recently-used
                     caching). Sharing means that the available cache size will be divided by the
                     number of cores. For SMT-2, set sharing of L1 and L2 to 2 cores. For 4 threads 
-                    with SMT-1, set L3 (usually shared by all cores) to 3 cores and L1 and L2 to 1 
-                    core.
+                    with SMT-1, set L3 (usually shared by all cores) to 3 cores, and set L1 and L2 
+                    to 1 core.
                 </p>
             </div>
         </div>

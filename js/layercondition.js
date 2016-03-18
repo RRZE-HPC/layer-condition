@@ -27,7 +27,7 @@ var gather_inputs = function() {
     for(var i=0; $('#access_'+i).length == 1; i++) {
         var array_name = $('#access_'+i)[0].value;
         if(array_name.length == 0) {
-            break;
+            continue;
         }
         var offsets = [];
         for(var j=0; $('#offset_'+i+nextChar('i', j)).length == 1; j++) {
@@ -59,9 +59,24 @@ var gather_inputs = function() {
             [1,0,0], [-1,0,0]],
             b: [[0,0,0]]}, /*/
         cache_sizes: {
-            L1: Math.floor(parseInt($('#l1_size').val())*1024/parseInt($('#l1_cores').val())),
-            L2: Math.floor(parseInt($('#l2_size').val())*1024/parseInt($('#l2_cores').val())),
-            L3: Math.floor(parseInt($('#l3_size').val())*1024/parseInt($('#l3_cores').val()))},
+            L1: {
+                size: parseInt($('#l1_size').val())*1024,
+                cores: parseInt($('#l1_cores').val()),
+                available: Math.floor(
+                    parseInt($('#l1_size').val())*1024/parseInt($('#l1_cores').val()))
+            },
+            L2: {
+                size: parseInt($('#l2_size').val())*1024,
+                cores: parseInt($('#l2_cores').val()),
+                available: Math.floor(
+                    parseInt($('#l2_size').val())*1024/parseInt($('#l2_cores').val()))
+            },
+            L3: {
+                size: parseInt($('#l3_size').val())*1024,
+                cores: parseInt($('#l3_cores').val()),
+                available: Math.floor(
+                    parseInt($('#l3_size').val())*1024/parseInt($('#l3_cores').val()))
+            }},
         safety_margin: parseInt($("#safety-margin").val())};
 }
 
@@ -185,7 +200,7 @@ var analyze_input = function(input) {
         // Inverse cache occupation (cache_size / total_cache_requirement)
         for(var cache_level in input['cache_sizes']) {
             analysis['inverse_occupation'][cache_level] = 
-                input['cache_sizes'][cache_level] / cache_requirement;
+                input['cache_sizes'][cache_level]['available'] / cache_requirement;
         }
         
         // Blocking suggestions:
@@ -194,7 +209,8 @@ var analyze_input = function(input) {
         analysis['optimal_blocking'] = {};
         for(var cache_level in input['cache_sizes']) {
             analysis['optimal_blocking'][cache_level] = inner_array_size - 
-                    (cache_requirement - input['cache_sizes'][cache_level]/input['safety_margin']) /
+                    (cache_requirement -
+                        input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
                     (analysis['blockable_offsets'] * input['arrays']['bytes_per_element']) /
                     (dim_sizes[dimension-1]/inner_array_size);
             
@@ -425,10 +441,13 @@ scatter_inputs = function(input) {
         }
     }
     
-    // Update cache sizes
-    $('#l1_size')[0].value = Math.round(input['cache_sizes']['L1']/1024);
-    $('#l2_size')[0].value = Math.round(input['cache_sizes']['L2']/1024);
-    $('#l3_size')[0].value = Math.round(input['cache_sizes']['L3']/1024);
+    // Update cache sizes and sharing
+    $('#l1_size')[0].value = Math.round(input['cache_sizes']['L1']['size']/1024);
+    $('#l2_size')[0].value = Math.round(input['cache_sizes']['L2']['size']/1024);
+    $('#l3_size')[0].value = Math.round(input['cache_sizes']['L3']['size']/1024);
+    $('#l1_cores')[0].value = Math.round(input['cache_sizes']['L1']['cores']);
+    $('#l2_cores')[0].value = Math.round(input['cache_sizes']['L2']['cores']);
+    $('#l3_cores')[0].value = Math.round(input['cache_sizes']['L3']['cores']);
     
     // Update safety margin
     $("#safety-margin")[0].value = input['safety_margin'];
@@ -443,7 +462,7 @@ window.onhashchange = function(){
     // We only intercept hashes that start with calculator and contain a hashbang
     if(!(hash.startsWith('calculator') && hash.search('%23!') >= 0)) return;
     // example encoding:
-    // #calculator#!{"dimensions":2,"arrays":{"type":"double","dimension":[1024,1024]},"accesses":{"a":[[0,1],[0,-1],[-1,0],[1,0]],"b":[[0,0]]},"cache_sizes":{"L1":32768,"L2":262144,"L3":20971520},"safety_margin":2}
+    // #calculator#!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D
     
     // extract relevant string
     data_str = hash.substr(hash.search('%23!')+4);
