@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="favicon.ico">
 
-    <title>Layer-Condition</title>
+    <title>Layer Condition</title>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -57,18 +57,18 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Layer Conditions</h1>
-        <p>We will shortly explain what layer-conditions are, give a detailed example and provide a tool for their interactive evaluation.</p>
+        <p>We will shortly explain what layer conditions are, give a detailed example and provide a tool for their interactive evaluation.</p>
       </div>
-      <p><a href="http://arxiv.org/pdf/1410.5010.pdf">Layer-conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model is assuming perfect least-recently-used cache replacement policy, which has proven to give a good estimation on current architectures with a pseudo LRU caching policy (e.g. current Intel and AMD CPUs).</p>
-      <p>The two dimensional layer-condition is given by multiplying the stencil height (\(S_h [\mathrm{elements}]\)) with the matrix (or array) width (\(M_w [\mathrm{elements}]\)) and the size per element (\(s [\frac{bytes}{\mathrm{element}}]\)), if that fits into applicable cache size (\(C_a [\mathrm{bytes}]\)) the layer condition is fulfilled and all accesses in two dimensions are reduced to one cache miss:
+      <p><a href="http://arxiv.org/abs/1410.5010">Layer conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model assumes a perfect least-recently-used cache replacement policy, which has proven to give a good estimate on current architectures with a pseudo LRU caching policy (e.g., current Intel and AMD CPUs).</p>
+      <p>The two-dimensional layer condition is given by multiplying the stencil height (\(S_h [\mathrm{elements}]\)) with the matrix (or array) width (\(M_w [\mathrm{elements}]\)) and the size per element (\(s [\frac{bytes}{\mathrm{element}}]\)), if that fits into applicable cache size (\(C_a [\mathrm{bytes}]\)) the layer condition is fulfilled and all accesses in two dimensions are reduced to one cache miss:
       \[S_h*M_w*s\leq C_a\]</p>
-      <p>Consider a 2D 5-Point stencil (explained in more detail in next section) on a 1024x1024 matrix with single precision floating point numbers: the stencil has a hight of three rows (\(S_h=3\,\mathrm{elements}\)), the matrix has a width of 1024 columns (\(M_w=1024\,\mathrm{elements}\)) and a single precision floating point number takes four bytes (\(s=4\,\frac{\mathrm{bytes}}{\mathrm{element}}\)). A typical code will use two arrays, one for input and one for output, and swap them after each sweep. Therefore the applicable cache size is half of the actual cache size (\(C_a = \frac{C_s}{2}\,\mathrm{bytes}\)):
+      <p>Consider a 2D 5-Point stencil (explained in more detail in next section) on a 1024x1024 matrix with single precision floating point numbers: the stencil has a height of three rows (\(S_h=3\,\mathrm{elements}\)), the matrix has a width of 1024 columns (\(M_w=1024\,\mathrm{elements}\)) and a single precision floating point number takes four bytes (\(s=4\,\frac{\mathrm{bytes}}{\mathrm{element}}\)). A typical code will use two arrays, one for input and one for output, and swap them after each sweep. Therefore the applicable cache size is half of the actual cache size (\(C_a = \frac{C_s}{2}\,\mathrm{bytes}\)):
           \[(3*1024*4)\,\mathrm{bytes}\leq \frac{C_s}{2}\]
       </p>
       <p>Any cache larger than 24 kilobyte fulfills the condition and thus leads to cache hits to all but two elements (leading elements from input matrix and output matrix). This example can also be calculated with our interactive tool: <a href="#calculator%23!%7B%22dimensions%22%3A2%2C%22arrays%22%3A%7B%22type%22%3A%22double%22%2C%22bytes_per_element%22%3A8%2C%22dimension%22%3A%5B1024%2C1024%5D%7D%2C%22accesses%22%3A%7B%22a%22%3A%5B%5B0%2C1%5D%2C%5B0%2C-1%5D%2C%5B-1%2C0%5D%2C%5B1%2C0%5D%5D%2C%22b%22%3A%5B%5B0%2C0%5D%5D%7D%2C%22cache_sizes%22%3A%7B%22L1%22%3A%7B%22size%22%3A32768%2C%22cores%22%3A1%2C%22available%22%3A32768%7D%2C%22L2%22%3A%7B%22size%22%3A262144%2C%22cores%22%3A1%2C%22available%22%3A262144%7D%2C%22L3%22%3A%7B%22size%22%3A20971520%2C%22cores%22%3A1%2C%22available%22%3A20971520%7D%7D%2C%22safety_margin%22%3A2%7D">load example</a>. The approach explained here only works if the stencil is without row gaps. To overcome this problem we propose a more detailed analysis explained in the following section.</p>
       <div class="page-header">
         <h2>Detailed Analysis</h2>
-        We will now explaining a more generic version of the layer-conditions in detail by means of an example, with the same 2D 5-Point stencil kernel.
+        We will now explaining a more generic version of the layer conditions in detail by means of an example, with the same 2D 5-Point stencil kernel.
       </div>
       <div class="row">
           <div class="col-md-8">
@@ -95,20 +95,20 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-8">
                 <p>If we plot these accesses onto a small array (here 5x7), it looks as seen in the graphic. Each X marks a read access to array <code>a</code> and the iteration order is denoted by the arrows <code>i</code> and <code>j</code>. By iterating in direction of <code>i</code> and <code>j</code>, we see that there will be a significant reuse of elements happening. Each element will be touched four times (if we ignore the boundary values). The number of iterations between the subsequent touches is what will influence the cache requirement most, due to the assumed LRU replacement policy.</p>
-                <p><mark>It is important to note</mark>, that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code.</p>
+                <p><mark>It is important to note</mark> that the order of the for-loops and the order of indices found in the array access must be the same for this model to work. E.g., an access <code>a[i][j]</code> would not be suitable in the code.</p>
             </div><div class="col-md-4">
                 <img class="img-thumbnail" src="img/stencil.png" alt="2D-5pt Stencil" width="250">
             </div>
         </div>
         <div class="row">
             <div class="col-md-12">
-                <h2>1D Layer-Condition</h2>
-                <p>We will build the layer-condition model starting from the first dimension, which may seem tedious or useless&ndash;since a 1D layer-condition is almost always fulfilled and considered trivial&ndash;but it allows for a better understanding and will enable the reader to easily project this model to any higher dimension.</p>
+                <h2>1D Layer Condition</h2>
+                <p>We will build the layer condition model starting from the first dimension, which may seem tedious or useless&ndash;since a 1D layer condition is almost always fulfilled and considered trivial&ndash;but it allows for a better understanding and will enable the reader to easily project this model to any higher dimension.</p>
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
-                <p>First we slice our array access into one dimensional continuos segments. This will yield three slices for the array <code>a</code>, as marked red in the graphic. Since <code>b</code> has only one access, it will always yield only one slice, no matter the dimension. We need to keep the total number of slices in mind for later computation:</p>
+                <p>First we slice our array access into one dimensional continuous segments. This will yield three slices for the array <code>a</code>, as marked red in the graphic. Since <code>b</code> has only one access, it will always yield only one slice, no matter the dimension. We need to keep the total number of slices in mind for later computation:</p>
                 \[n_\mathrm{slices}=3+1=4\]
                 <p>In addition we need to compute the relative offsets of accesses within each slice. In this case it is easy, because there is only one slice containing more then one accesses: the center row with <code>a[j][i-1]</code> and <code>a[j][i+1]</code>. They are offset by two elements. We need to keep a list of offsets, to which we add this:</p>
                 \[L_\mathrm{rel.offsets}=\{2\}\]
@@ -126,13 +126,13 @@ for(int j=1; j&lt;M-1; j++) {
         
         <div class="row">
             <div class="col-md-12">
-                <h2>2D Layer-Condition</h2>
+                <h2>2D Layer Condition</h2>
                 <p>We will now evolve the previous model to two dimensions, which will give us a more useful estimation. This will be the highest dimension analyzable, since the arrays are two dimensional.</p>
             </div>
         </div>
         <div class="row">
             <div class="col-md-8">
-                <p>Again, we slice our array access into two dimensional continuos segments. This is easy, since the array only has two dimensions, therefore we have only one slice per array (marked red in graphic). One for <code>a</code> and another for <code>b</code>:</p>
+                <p>Again, we slice our array access into two dimensional continuous segments. This is easy, since the array only has two dimensions, therefore we have only one slice per array (marked red in graphic). One for <code>a</code> and another for <code>b</code>:</p>
                 \[n_\mathrm{slices}=1+1=2\]
                 <p>To calculate the relative offsets between accesses within each slice are a little more laborious. We have four accesses in <code>a</code>, thus three relative offsets to add to our list: \(N-1\) elements between <code>a[j-1][i]</code> and <code>a[j][i-1]</code>, \(2\) elements between <code>a[j][i-1]</code> and <code>a[j][i+1]</code> (as in the 1D case), and again \(N-1\) elements <code>a[j+1][i]</code> and <code>a[j][i+1]</code>.</p>
                 \[L_\mathrm{rel.offsets}=\{N-1, 2, N-1\}\]
@@ -143,7 +143,7 @@ for(int j=1; j&lt;M-1; j++) {
         <div class="row">
             <div class="col-md-12">
                 <p>Putting it all together follows the same process as before. We take the number of slices \(n_\mathrm{slices}\), the relative offsets \(L_\mathrm{rel.offsets}\) and \(s=8\frac{\mathrm{byte}}{\mathrm{element}}\), the size of an element and we get an estimation of the total cache requirement by: \[C_\mathrm{req.}=\left(\sum L_\mathrm{rel.offsets}+\max(L_\mathrm{rel.offsets})*n_\mathrm{slices}\right)*s\]</p>
-                <p>More interesting is what results from it: \(C_\mathrm{req.}(N)=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means, that aslong as \(C_\mathrm{req.}(N)\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
+                <p>More interesting is what results from it: \(C_\mathrm{req.}(N)=(2*N+(N-1)*2)*8=32*N-16\,\mathrm{Byte}\), which&ndash;unlike before&ndash;depends on \(N\). This means that aslong as \(C_\mathrm{req.}(N)\) is smaller then half the cache, three out of five data accesses are served from cache.</p>
                 <p>The optimal blocking size is calculated by solving the above equation for N, such that it is equal to half the cache-size. Since this model is assuming a perfect cache an no sharing of resources, we usually incorporate a safety margin of two, which means that we use the prediction for half the cache size. To fit into a 32 KB cache we take: \[N=\frac{\frac{1}{2}*32*1024+16}{32}\approx512\] Thus, the optimal blocking size would be 512 elements in the inner-most loop.</p>
             </div>
         </div>
@@ -210,7 +210,7 @@ for(int j=1; j&lt;M-1; j++) {
                 <div id="access_rows" class="bracket-notation"></div>
                 <a class="btn btn-default" id="add_access" role="button">Add access</a>
                 <p class="help-block">
-                    Add accesses found in the inner-most loop without the loop counters. E.g. a[+1][+1] or VEC[0][-1]. On a write-allocate architecture, also add write accesses here.
+                    Add accesses found in the innermost loop without the loop counters. E.g. a[+1][+1] or VEC[0][-1]. If writes go to the cache, also add write accesses here.
                 </p>
             </div>
         </div>
