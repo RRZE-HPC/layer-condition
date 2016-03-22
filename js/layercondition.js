@@ -184,7 +184,7 @@ var analyze_input = function(input) {
             miss_offsets: miss_offsets});
 
         // Number of reuse distances effected by blocking
-            analysis['blockable_offsets'] = 0;
+        analysis['blockable_offsets'] = 0;
         if(dimension >= 1) {
             analysis['blockable_offsets'] =
                 // all new hits in this dimension can be blocked
@@ -194,7 +194,7 @@ var analyze_input = function(input) {
                 // plus all cached tails
                 values(miss_offsets).reduce(function(prev,curr){return prev+curr.length}, 0);
         }
-
+        
         analysis['inverse_occupation'] = {};
         // Inverse cache occupation (cache_size / total_cache_requirement_bytes)
         for(var cache_level in input['cache_sizes']) {
@@ -204,25 +204,22 @@ var analyze_input = function(input) {
         }
 
         // Blocking suggestions:
-        // (cache_requirement_bytes - cache_size / safety_margin) / bytes_per_element / blockable_offsets
+        // N*M*K*... (dep. on dim.) <= (dim_sizes[dimension-1] - (cach_requirement_bytes - cache_size / safety_margin) / bytes_per_element / blockable_offsets)^(1/dimension)
         var inner_array_size = input['arrays']['dimension'].slice(-1)[0];
-        analysis['optimal_blocking'] = {};
+        analysis['suggested_blocking'] = {};
         for(var cache_level in input['cache_sizes']) {
-            analysis['optimal_blocking'][cache_level] = inner_array_size -
-                    (cache_requirement * input['arrays']['bytes_per_element'] -
-                        input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
-                    (analysis['blockable_offsets'] * input['arrays']['bytes_per_element']) /
-                    (dim_sizes[dimension-1]/inner_array_size);
-
-            if(analysis['optimal_blocking'][cache_level] > 1.0 &&
-               max_reuse > (dim_sizes[dimension-1]/inner_array_size)) {
-                // Floor blocking, because half elements do not make sense
-                analysis['optimal_blocking'][cache_level] = Math.floor(
-                    analysis['optimal_blocking'][cache_level])
-            } else {
-                // Every blocking with 1 or less means blocking won't help
-                analysis['optimal_blocking'][cache_level] = null;
+            var lhs = '';
+            for(var i=0; i<dimension; ++i) {
+                lhs += nextChar('N', -i);
             }
+            
+            var rhs = (dim_sizes[dimension-1] -
+                       (cache_requirement * input['arrays']['bytes_per_element'] -
+                           input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
+                       (analysis['blockable_offsets'] * input['arrays']['bytes_per_element'])
+                      )^(1/dimension)
+
+            analysis['suggested_blocking'][cache_level] = {'lhs': lhs, 'rhs': rhs};
         }
 
         lc_analysis[(dimension+1)+'D'] = analysis;
@@ -289,14 +286,13 @@ var display_results = function(input, results) {
             })))
         );
         data.push(
-            $.extend.apply({}, [{info: "optimal blocking for "+cache_level}].concat(
+            $.extend.apply({}, [{info: "suggested blocking** for "+cache_level}].concat(
                     Object.keys(results).map(function(k) {
                 var map = {};
-                var blocking = results[k]['optimal_blocking'][cache_level];
-                if(isFinite(blocking) && blocking != null) {
-                    map[k] = blocking.toLocaleString('en-US')+' elements';
-                } else if(blocking == null) {
-                    map[k] = '-';
+                var blocking = results[k]['suggested_blocking'][cache_level];
+                if(blocking['rhs'] > 0) {
+                    map[k] = '\\('+blocking['lhs']+' \\lesssim ' + 
+                             blocking['rhs'].toString()+'\\) elements';
                 } else {
                     map[k] = "n/a";
                 }
@@ -342,6 +338,9 @@ var display_results = function(input, results) {
         columns: columns,
         data: data,
     })
+    
+    // Rerun MathJax to render formulae in table
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 
     $("#results").show()
 }
@@ -367,16 +366,27 @@ updated_dimension = function() {
     var dims = parseInt($("#dimensions").val())
     // TODO add/sub inputs to/from array sizes
     var template = $('#array_size_template');
-    var dest = $('#array_size');
-    while(dest.children().length != dims) {
-        if(dest.children().length < dims) {
-            // TODO add and delete from front
+    var dest = $('#array_define tr:first');
+    var count = 0;
+    while(dest.children().length-1 != dims) {
+        if(dest.children().length-1 < dims) {
+            // add and delete from front
             var n = template.clone()
+            n.wrapInner('<td></td>')
+            n = n.children()
             n.show()
-            n.find("input").attr("id", "ar_size"+dest.children().length);
-            n.prependTo(dest);
+            n.find("input").attr("id", "ar_size"+(dest.children().length-1));
+            
+            // Insert created element
+            n.insertAfter($('#type_col'));
+            
+            // Update index row
+            var n_ind = $('<td>'+nextChar('N', -(dest.children().length-2))+'</td>');
+            n_ind.insertAfter($('#type_index_col'))
         } else {
-            dest.children()[0].remove();
+            // remove unneeded columns
+            dest.children()[1].remove();
+            $('#array_indices').children()[1].remove();
         }
     }
     // add/sub inputs to/from accesses
@@ -428,6 +438,7 @@ scatter_inputs = function(input) {
 
     $('#type')[0].value = input['arrays']['type'];
     for(var i=0; i<input['dimensions']; i++) {
+        console.log('#ar_size'+(input['dimensions']-1-i))
         $('#ar_size'+(input['dimensions']-1-i))[0].value = input['arrays']['dimension'][i];
     }
 
