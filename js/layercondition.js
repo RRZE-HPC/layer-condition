@@ -438,7 +438,6 @@ scatter_inputs = function(input) {
 
     $('#type')[0].value = input['arrays']['type'];
     for(var i=0; i<input['dimensions']; i++) {
-        console.log('#ar_size'+(input['dimensions']-1-i))
         $('#ar_size'+(input['dimensions']-1-i))[0].value = input['arrays']['dimension'][i];
     }
 
