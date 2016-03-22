@@ -204,7 +204,10 @@ var analyze_input = function(input) {
         }
 
         // Blocking suggestions:
+        // deprecated version (short coming: error increases with array size):
         // N*M*K*... (dep. on dim.) <= (dim_sizes[dimension-1] - (cach_requirement_bytes - cache_size / safety_margin) / bytes_per_element / blockable_offsets)^(1/dimension)
+        // current version (short coming: error is based on kernel):
+        // N*M*K*... (dep. on dim.) <= dim_sizes[dimension-1] * cache_size/safety_margin / cach_requirement_bytes
         var inner_array_size = input['arrays']['dimension'].slice(-1)[0];
         analysis['suggested_blocking'] = {};
         for(var cache_level in input['cache_sizes']) {
@@ -213,11 +216,16 @@ var analyze_input = function(input) {
                 lhs += nextChar('N', -i);
             }
             
-            var rhs = (dim_sizes[dimension-1] -
-                       (cache_requirement * input['arrays']['bytes_per_element'] -
-                           input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
-                       (analysis['blockable_offsets'] * input['arrays']['bytes_per_element'])
-                      )^(1/dimension)
+            var rhs = Math.floor(dim_sizes[dimension-1] *
+                      (input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
+                      (cache_requirement * input['arrays']['bytes_per_element']));
+            
+            // depricated version:
+            //var rhs = (dim_sizes[dimension-1] -
+            //           (cache_requirement * input['arrays']['bytes_per_element'] -
+            //               input['cache_sizes'][cache_level]['available']/input['safety_margin']) /
+            //           (analysis['blockable_offsets'] * input['arrays']['bytes_per_element'])
+            //          )^(1/dimension)
 
             analysis['suggested_blocking'][cache_level] = {'lhs': lhs, 'rhs': rhs};
         }
