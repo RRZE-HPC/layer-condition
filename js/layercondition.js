@@ -77,7 +77,7 @@ var gather_inputs = function() {
                 available: Math.floor(
                     parseInt($('#l3_size').val())*1024/parseInt($('#l3_cores').val()))
             }},
-        safety_margin: parseInt($("#safety-margin").val())};
+        safety_margin: parseFloat($("#safety-margin").val())};
 }
 
 var analyze_input = function(input) {
