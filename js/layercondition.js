@@ -300,7 +300,13 @@ var display_results = function(input, results) {
                 var blocking = results[k]['suggested_blocking'][cache_level];
                 if(blocking['rhs'] > 0) {
                     map[k] = '\\('+blocking['lhs']+' \\lesssim ' + 
-                             blocking['rhs'].toString()+'\\) elements';
+                             blocking['rhs'].toString()+'\\) elements'
+                    if(blocking['lhs'].length > 1) {
+                    map[k] += '<br/>\\(\\sqrt['+blocking['lhs'].length+']{'+blocking['lhs']+
+                              '} \\lesssim '+Math.floor(
+                                  Math.pow(blocking['rhs'], 1/blocking['lhs'].length)
+                              ).toString()+'\\) elements';
+                    }
                 } else {
                     map[k] = "n/a";
                 }
