@@ -57,7 +57,7 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Layer Conditions</h1>
-        <p>We will shortly explain what layer conditions are, give a detailed example and provide a tool for their interactive evaluation.</p>
+        <p>We will shortly explain what layer conditions are, give a detailed example and provide a tool for their interactive evaluation. This will help you understand and calculate optimal blocking sizes for stencil codes.</p>
       </div>
       <p><a href="http://arxiv.org/abs/1410.5010">Layer conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model assumes a perfect least-recently-used cache replacement policy, which has proven to give a good estimate on current architectures with a pseudo LRU caching policy (e.g., current Intel and AMD CPUs).</p>
       <p>The two-dimensional layer condition is given by multiplying the stencil height (\(S_h [\mathrm{elements}]\)) with the matrix (or array) width (\(M_w [\mathrm{elements}]\)) and the size per element (\(s [\frac{bytes}{\mathrm{element}}]\)), if that fits into applicable cache size (\(C_a [\mathrm{bytes}]\)) the layer condition is fulfilled and all accesses in two dimensions are reduced to one cache miss:
