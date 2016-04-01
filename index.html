@@ -18,6 +18,9 @@
     <!-- Bootstrap table CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css" rel="stylesheet">
 
+    <!-- Octicon GitHub logo -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/3.5.0/octicons.min.css">
+
     <!-- Custom styles for this template -->
     <link href="theme.css" rel="stylesheet">
 
@@ -48,6 +51,9 @@
             <li><a href="#calculator">Calculator</a></li>
             <li><a href="#contact">Contact</a></li>
           </ul>
+          <ul class="nav navbar-nav navbar-right">
+              <li><a href="https://github.com/RRZE-HPC/layer-condition/"><span class="octicon octicon-mark-github" style="font-size: 24px;"></span></a></li>
+          </ul>
         </div><!--/.nav-collapse -->
       </div>
     </nav>
@@ -56,7 +62,7 @@
 
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Layer Conditions</h1>
+        <h1>Layer Conditions </h1>
         <p>We will shortly explain what layer conditions are, give a detailed example and provide a tool for their interactive evaluation. This will help you understand and calculate optimal blocking sizes for stencil codes.</p>
       </div>
       <p><a href="http://arxiv.org/abs/1410.5010">Layer conditions</a> (LCs) allow a quick approximation of the cache requirement of stencil codes. The model assumes a perfect least-recently-used cache replacement policy, which has proven to give a good estimate on current architectures with a pseudo LRU caching policy (e.g., current Intel and AMD CPUs).</p>
