@@ -15,7 +15,7 @@ function nextChar(start, dist) {
 
 var gather_inputs = function() {
     // gather information from form
-    var bytes_per_element = {"double": 8, "float": 4};
+    var bytes_per_element = {"double": 8, "float": 4, "double _Complex": 16, "float _Complex": 8};
     var dims = parseInt($('#dimensions').val());
 
     var array_sizes = [];
